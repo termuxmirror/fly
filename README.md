@@ -29,6 +29,7 @@ apt update && apt upgrade
 apt-get install curl
 apt-get install git
 git clone https://github.com/termuxmirror/fly
+cd fly
 chmod +x *
 ./setup
 ```
