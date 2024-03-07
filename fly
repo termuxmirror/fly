@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Definiere die Basis-URLs der Spiegelserver
+MIRROR1="https://termuxmirror.netlify.app/pakage/"
+MIRROR2="https://termuxmirror2.netlify.app/pakage/"
+
+# Ordner für die Installation
+INSTALL_DIR="$HOME/.pakage"
+
+# Funktion, um Pakete zu suchen
+search_pakage() {
+    PAKAGE_NAME=$1
+    echo "Suche nach $PAKAGE_NAME auf $MIRROR1"
+    if curl --output /dev/null --silent --head --fail "$MIRROR1$PAKAGE_NAME"; then
+        echo "$PAKAGE_NAME gefunden auf $MIRROR1"
+    else
+        echo "$PAKAGE_NAME nicht gefunden auf $MIRROR1"
+    fi
+
+    echo "Suche nach $PAKAGE_NAME auf $MIRROR2"
+    if curl --output /dev/null --silent --head --fail "$MIRROR2$PAKAGE_NAME"; then
+        echo "$PAKAGE_NAME gefunden auf $MIRROR2"
+    else
+        echo "$PAKAGE_NAME nicht gefunden auf $MIRROR2"
+    fi
+}
+
+# Funktion, um Pakete zu installieren
+install_pakage() {
+    PAKAGE_NAME=$1
+    echo "Versuche, $PAKAGE_NAME von $MIRROR1 zu installieren..."
+    if curl --output /dev/null --silent --head --fail "$MIRROR1$PAKAGE_NAME"; then
+        curl -o "$INSTALL_DIR/$PAKAGE_NAME" "$MIRROR1$PAKAGE_NAME"
+        echo "$PAKAGE_NAME erfolgreich von $MIRROR1 installiert."
+    else
+        echo "Versuche, $PAKAGE_NAME von $MIRROR2 zu installieren..."
+        if curl --output /dev/null --silent --head --fail "$MIRROR2$PAKAGE_NAME"; then
+            curl -o "$INSTALL_DIR/$PAKAGE_NAME" "$MIRROR2$PAKAGE_NAME"
+            echo "$PAKAGE_NAME erfolgreich von $MIRROR2 installiert."
+        else
+            echo "Installation fehlgeschlagen: $PAKAGE_NAME konnte nicht gefunden werden."
+        fi
+    fi
+}
+
+# Hauptlogik des Scripts
+if [ $# -lt 2 ]; then
+    echo "Usage: fly {-ti|-ts} pakage_name"
+    exit 1
+fi
+
+# Überprüfe, ob der Installationsordner existiert, und erstelle ihn, falls nicht
+if [ ! -d "$INSTALL_DIR" ]; then
+    mkdir -p "$INSTALL_DIR"
+fi
+
+# Entscheide basierend auf dem ersten Argument
+case $1 in
+    -ti)
+        shift # Entferne das erste Argument
+        install_pakage "$1"
+        ;;
+    -ts)
+        shift # Entferne das erste Argument
+        search_pakage "$1"
+        ;;
+    *)
+        apt-get "$@"
+        ;;
+esac
