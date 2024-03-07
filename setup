@@ -2,8 +2,8 @@
 
 echo "export PATH=$PATH:~/.fly" >> $HOME/.bashrc
 
-mkdir $HOME.fly
+mkdir $HOME/.pakage
 
-mv fly $HOME.fly
+mv fly $HOME/.pakage
 
 ./delete
